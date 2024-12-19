@@ -34,6 +34,7 @@
 }:
 
 let
+
   davinci = (
     stdenv.mkDerivation rec {
       pname = "davinci-resolve${lib.optionalString studioVariant "-studio"}";
@@ -170,27 +171,11 @@ let
         ln -s $out/libs/libcrypto.so.1.1 $out/libs/libcrypt.so.1
       '';
       /* this comment fixes nano's broken syntax highlighting*/
-      desktopItems = [
-        (makeDesktopItem {
-          name = "davinci-resolve${lib.optionalString studioVariant "-studio"}";
-          desktopName = "Davinci Resolve${lib.optionalString studioVariant " Studio"}";
-          genericName = "Video Editor";
-          exec = "davinci-resolve${lib.optionalString studioVariant "-studio"}";
-          icon = "davinci-resolve${lib.optionalString studioVariant "-studio"}";
-          comment = "Professional video editing, color, effects and audio post-processing";
-          categories = [
-            "AudioVideo"
-            "AudioVideoEditing"
-            "Video"
-            "Graphics"
-          ];
-        })
-      ];
     }
   );
 
   fhs = buildFHSEnv {
-  pname = "davinci-resolve${lib.optionalString studioVariant "-studio"}-fhs";
+  pname = "${davinci.pname}-fhs";
   inherit (davinci) version;
 
   targetPkgs = pkgs: with pkgs; [
@@ -265,7 +250,7 @@ let
     export QT_XKB_CONFIG_ROOT="${xkeyboard_config}/share/X11/xkb"
     export QT_PLUGIN_PATH="${davinci}/libs/plugins:$QT_PLUGIN_PATH"
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib:/usr/lib32:${davinci}/libs
-    $@
+    exec "$@"
     ''
   }";
 
@@ -277,19 +262,57 @@ let
   /* this comment fixes nano's broken syntax highlighting*/
 };
 
-wrapper = ''${fhs}/bin/davinci-resolve${lib.optionalString studioVariant "-studio"}-fhs'';
 
-resolve-wrapper = writeShellScriptBin "res" "${wrapper} ${davinci}/bin/resolve";
+wrapper = ''${fhs}/bin/${davinci.pname}-fhs'';
+
+mkWrapper = path: args: writeShellScriptBin path "${lib.strings.concatMapStringsSep " " lib.escapeShellArg ([wrapper] ++ args)}";
+resolve-wrapper = mkWrapper "${davinci.pname}" ["${davinci}/bin/resolve"];
+#panel-setup-wrapper = writeShellScriptBin "DaVinci Control Panels Setup" "${wrapper} ${lib.escapeShellArg "${davinci}/Control Panels Setup/DaVinci Control Panels Setup"}";
+panel-setup-wrapper = mkWrapper "DaVinci Control Panels Setup" ["${davinci}/DaVinci Control Panels Setup/DaVinci Control Panels Setup"];
 
 in
 
 symlinkJoin {
   inherit (davinci) pname version;
 
+  nativeBuildInputs = [ copyDesktopItems ];
   buildInputs = [ fhs ];
 
   paths = [
   	resolve-wrapper
+  	panel-setup-wrapper
+  	
+    (makeDesktopItem {
+      name = "davinci-resolve-panels";
+      desktopName = "DaVinci Control Panels Setup";
+      exec = panel-setup-wrapper; #"davinci-resolve${lib.optionalString studioVariant "-studio"}";
+      icon = "${davinci}/graphics/DV_Panels.png";
+      categories = [
+        "AudioVideo"
+        "AudioVideoEditing"
+        "Video"
+        "Graphics"
+      ];
+    })
+
+    (makeDesktopItem {
+      name = "davinci-resolve${lib.optionalString studioVariant "-studio"}";
+      desktopName = "Davinci Resolve${lib.optionalString studioVariant " Studio"}";
+      genericName = "Video Editor";
+      exec = resolve-wrapper; #"davinci-resolve${lib.optionalString studioVariant "-studio"}";
+      icon = "${davinci}/graphics/DV_Resolve.png";
+      comment = "Professional video editing, color, effects and audio post-processing";
+      mimeTypes = ["application/x-resolveproj"];
+      startupNotify = true;
+      terminal = false;
+      categories = [
+        "AudioVideo"
+        "AudioVideoEditing"
+        "Video"
+        "Graphics"
+      ];
+    })
+
   	#fhs
   	#(writeScriptBin "my-file" "echo hello")
   ];
