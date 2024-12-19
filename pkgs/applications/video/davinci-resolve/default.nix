@@ -187,8 +187,7 @@ let
     }
   );
 
-in
-buildFHSEnv {
+  fhs = buildFHSEnv {
   inherit (davinci) pname version;
 
   targetPkgs = pkgs: with pkgs; [
@@ -305,4 +304,8 @@ buildFHSEnv {
     sourceProvenance = with sourceTypes; [ binaryNativeCode ];
     mainProgram = "davinci-resolve${lib.optionalString studioVariant "-studio"}";
   };
-}
+};
+
+in
+
+fhs
