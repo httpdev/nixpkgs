@@ -36,3 +36,6 @@ update-git-commits.txt
 
 # JetBrains IDEA module declaration file
 /nixpkgs.iml
+dav
+_dav_debugging
+yo
