@@ -186,6 +186,7 @@ let
       ];
     }
   );
+
 in
 buildFHSEnv {
   inherit (davinci) pname version;
@@ -256,22 +257,13 @@ buildFHSEnv {
     "--bind \"$HOME\"/.local/share/DaVinciResolve/license ${davinci}/.license"
   ];
 
-#  runScript = "${bash}/bin/bash ${
-#    writeText "davinci-wrapper"
-#    ''
-#    export QT_XKB_CONFIG_ROOT="${xkeyboard_config}/share/X11/xkb"
-#    export QT_PLUGIN_PATH="${davinci}/libs/plugins:$QT_PLUGIN_PATH"
-#    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib:/usr/lib32:${davinci}/libs
-#    ${davinci}/bin/resolve
-#    ''
-#  }";
   runScript = "${bash}/bin/bash ${
     writeText "davinci-wrapper"
     ''
     export QT_XKB_CONFIG_ROOT="${xkeyboard_config}/share/X11/xkb"
     export QT_PLUGIN_PATH="${davinci}/libs/plugins:$QT_PLUGIN_PATH"
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib:/usr/lib32:${davinci}/libs
-    ${davinci}/bin/resolve & ${bash}/bin/bash
+    $@
     ''
   }";
 
@@ -280,13 +272,6 @@ buildFHSEnv {
     ln -s ${davinci}/share/applications/*.desktop $out/share/applications/
     ln -s ${davinci}/graphics/DV_Resolve.png $out/share/icons/hicolor/128x128/apps/davinci-resolve${lib.optionalString studioVariant "-studio"}.png
   '';
-
-  extraBindPaths = [
-    {
-      source = "${davinci}/libs/libDaVinciPanels.so";  # Path to the library in the Nix store
-      target = "/usr/lib64/libDaVinciPanels.so";       # Desired path in the FHS environment
-    }
-  ];
 
   passthru = {
     inherit davinci;
