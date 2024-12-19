@@ -14,6 +14,7 @@
 , buildFHSEnvChroot
 , bash
 , writeText
+, writeShellScriptBin
 , symlinkJoin
 , ocl-icd
 , xkeyboard_config
@@ -168,7 +169,7 @@ let
         done
         ln -s $out/libs/libcrypto.so.1.1 $out/libs/libcrypt.so.1
       '';
-
+      /* this comment fixes nano's broken syntax highlighting*/
       desktopItems = [
         (makeDesktopItem {
           name = "davinci-resolve${lib.optionalString studioVariant "-studio"}";
@@ -189,7 +190,8 @@ let
   );
 
   fhs = buildFHSEnv {
-  inherit (davinci) pname version;
+  pname = "davinci-resolve${lib.optionalString studioVariant "-studio"}-fhs";
+  inherit (davinci) version;
 
   targetPkgs = pkgs: with pkgs; [
     alsa-lib
@@ -272,6 +274,25 @@ let
     ln -s ${davinci}/share/applications/*.desktop $out/share/applications/
     ln -s ${davinci}/graphics/DV_Resolve.png $out/share/icons/hicolor/128x128/apps/davinci-resolve${lib.optionalString studioVariant "-studio"}.png
   '';
+  /* this comment fixes nano's broken syntax highlighting*/
+};
+
+wrapper = ''${fhs}/bin/davinci-resolve${lib.optionalString studioVariant "-studio"}-fhs'';
+
+resolve-wrapper = writeShellScriptBin "res" "${wrapper} ${davinci}/bin/resolve";
+
+in
+
+symlinkJoin {
+  inherit (davinci) pname version;
+
+  buildInputs = [ fhs ];
+
+  paths = [
+  	resolve-wrapper
+  	#fhs
+  	#(writeScriptBin "my-file" "echo hello")
+  ];
 
   passthru = {
     inherit davinci;
@@ -296,6 +317,7 @@ let
     });
   };
 
+
   meta = with lib; {
     description = "Professional video editing, color, effects and audio post-processing";
     homepage = "https://www.blackmagicdesign.com/products/davinciresolve";
@@ -305,16 +327,6 @@ let
     sourceProvenance = with sourceTypes; [ binaryNativeCode ];
     mainProgram = "davinci-resolve${lib.optionalString studioVariant "-studio"}";
   };
-};
-
-in
-
-symlinkJoin {
-  inherit (davinci) pname version;
-
-  paths = [
-  	fhs
-  ];
 
   #buildInputs = [ fhs ];
 }
