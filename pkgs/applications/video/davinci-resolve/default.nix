@@ -14,6 +14,7 @@
 , buildFHSEnvChroot
 , bash
 , writeText
+, symlinkJoin
 , ocl-icd
 , xkeyboard_config
 , glib
@@ -308,4 +309,12 @@ let
 
 in
 
-fhs
+symlinkJoin {
+  inherit (davinci) pname version;
+
+  paths = [
+  	fhs
+  ];
+
+  #buildInputs = [ fhs ];
+}
