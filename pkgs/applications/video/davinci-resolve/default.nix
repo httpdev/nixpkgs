@@ -4,6 +4,7 @@
 , curl
 , runCommandLocal
 , unzip
+#, gnutar
 , appimage-run
 , addDriverRunpath
 , dbus
@@ -41,6 +42,7 @@ let
         addDriverRunpath
         copyDesktopItems
         unzip
+#        gnutar
       ];
 
       # Pretty sure, there are missing dependencies ...
@@ -140,8 +142,11 @@ let
         mkdir -p $out
         test -e ${lib.escapeShellArg appimageName}
         appimage-run ${lib.escapeShellArg appimageName} -i -y -n -C $out
+        mkdir -p $out/lib
+        tar xvf $out/share/panels/dvpanel-framework-linux-x86_64.tgz -C $out/lib        
 
         mkdir -p $out/{configs,DolbyVision,easyDCP,Fairlight,GPUCache,logs,Media,"Resolve Disk Database",.crashreport,.license,.LUT}
+
         runHook postInstall
       '';
 
@@ -195,21 +200,27 @@ buildFHSEnv {
     fontconfig
     freetype
     glib
+    krb5  # for DaVinci Control Panels Setup
     libGL
     libGLU
     libarchive
     libcap
+    libdrm
+    libpng12
     librsvg
     libtool
+    libusb1
     libuuid
     libxcrypt # provides libcrypt.so.1
     libxkbcommon
     nspr
+    nss
     ocl-icd
     opencl-headers
     python3
     python3.pkgs.numpy
     udev
+    xcb-util-cursor
     xdg-utils # xdg-open needed to open URLs
     xorg.libICE
     xorg.libSM
@@ -233,6 +244,7 @@ buildFHSEnv {
     xorg.xcbutilrenderutil
     xorg.xcbutilwm
     xorg.xkeyboardconfig
+    xorg.libxkbfile
     zlib
   ];
 
@@ -244,13 +256,22 @@ buildFHSEnv {
     "--bind \"$HOME\"/.local/share/DaVinciResolve/license ${davinci}/.license"
   ];
 
+#  runScript = "${bash}/bin/bash ${
+#    writeText "davinci-wrapper"
+#    ''
+#    export QT_XKB_CONFIG_ROOT="${xkeyboard_config}/share/X11/xkb"
+#    export QT_PLUGIN_PATH="${davinci}/libs/plugins:$QT_PLUGIN_PATH"
+#    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib:/usr/lib32:${davinci}/libs
+#    ${davinci}/bin/resolve
+#    ''
+#  }";
   runScript = "${bash}/bin/bash ${
     writeText "davinci-wrapper"
     ''
     export QT_XKB_CONFIG_ROOT="${xkeyboard_config}/share/X11/xkb"
     export QT_PLUGIN_PATH="${davinci}/libs/plugins:$QT_PLUGIN_PATH"
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib:/usr/lib32:${davinci}/libs
-    ${davinci}/bin/resolve
+    ${davinci}/bin/resolve & ${bash}/bin/bash
     ''
   }";
 
@@ -259,6 +280,13 @@ buildFHSEnv {
     ln -s ${davinci}/share/applications/*.desktop $out/share/applications/
     ln -s ${davinci}/graphics/DV_Resolve.png $out/share/icons/hicolor/128x128/apps/davinci-resolve${lib.optionalString studioVariant "-studio"}.png
   '';
+
+  extraBindPaths = [
+    {
+      source = "${davinci}/libs/libDaVinciPanels.so";  # Path to the library in the Nix store
+      target = "/usr/lib64/libDaVinciPanels.so";       # Desired path in the FHS environment
+    }
+  ];
 
   passthru = {
     inherit davinci;
