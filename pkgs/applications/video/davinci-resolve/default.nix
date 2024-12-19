@@ -234,6 +234,10 @@ let
     xorg.xkeyboardconfig
     xorg.libxkbfile
     zlib
+
+    # extra for getlogs
+    pciutils
+    unixtools.top
   ];
 
   extraPreBwrapCmds = lib.optionalString studioVariant ''
@@ -265,10 +269,14 @@ let
 
 wrapper = ''${fhs}/bin/${davinci.pname}-fhs'';
 
-mkWrapper = path: args: writeShellScriptBin path "${lib.strings.concatMapStringsSep " " lib.escapeShellArg ([wrapper] ++ args)}";
+mkWrapper = path: args: writeShellScriptBin path ''${lib.strings.concatMapStringsSep " " lib.escapeShellArg ([wrapper] ++ args)} "$@"'';
 resolve-wrapper = mkWrapper "${davinci.pname}" ["${davinci}/bin/resolve"];
 #panel-setup-wrapper = writeShellScriptBin "DaVinci Control Panels Setup" "${wrapper} ${lib.escapeShellArg "${davinci}/Control Panels Setup/DaVinci Control Panels Setup"}";
 panel-setup-wrapper = mkWrapper "DaVinci Control Panels Setup" ["${davinci}/DaVinci Control Panels Setup/DaVinci Control Panels Setup"];
+remote-monitor-wrapper = mkWrapper "DaVinci Remote Monitor" ["${davinci}/bin/DaVinci Remote Monitor"];
+#getlogs-wrapper = mkWrapper "DaVinci Resolve Capture Logs" ["${davinci}/scripts/script.getlogs.v4"];  # this doesn't make sense to include, as it uses system-specific tools
+#bmr-player-wrapper = mkWrapper "BlackmagicRAWPlayer" ["${davinci}/BlackmagicRAWPlayer/BlackmagicRAWPlayer"];  # does not work yet
+bmr-speed-test-wrapper = mkWrapper "BlackmagicRAWSpeedTest" ["${davinci}/BlackmagicRAWSpeedTest/BlackmagicRAWSpeedTest"];
 
 in
 
@@ -281,6 +289,9 @@ symlinkJoin {
   paths = [
   	resolve-wrapper
   	panel-setup-wrapper
+  	remote-monitor-wrapper
+  	#bmr-player-wrapper  # does not work yet
+  	bmr-speed-test-wrapper
   	
     (makeDesktopItem {
       name = "davinci-resolve-panels";
@@ -297,7 +308,7 @@ symlinkJoin {
 
     (makeDesktopItem {
       name = "davinci-resolve${lib.optionalString studioVariant "-studio"}";
-      desktopName = "Davinci Resolve${lib.optionalString studioVariant " Studio"}";
+      desktopName = "DaVinci Resolve${lib.optionalString studioVariant " Studio"}";
       genericName = "Video Editor";
       exec = resolve-wrapper; #"davinci-resolve${lib.optionalString studioVariant "-studio"}";
       icon = "${davinci}/graphics/DV_Resolve.png";
@@ -305,6 +316,33 @@ symlinkJoin {
       mimeTypes = ["application/x-resolveproj"];
       startupNotify = true;
       terminal = false;
+      categories = [
+        "AudioVideo"
+        "AudioVideoEditing"
+        "Video"
+        "Graphics"
+      ];
+    })
+
+    (makeDesktopItem {
+      name = "davinci-resolve-remote-monitor";
+      desktopName = "DaVinci Remote Monitor";
+      exec = remote-monitor-wrapper;
+      icon = "${davinci}/graphics/Remote_Monitoring.png";
+      startupNotify = true;
+      categories = [
+        "AudioVideo"
+        "AudioVideoEditing"
+        "Video"
+        "Graphics"
+      ];
+    })
+
+    (makeDesktopItem {
+      name = "blackmagic-raw-speed-test";
+      desktopName = "Blackmagic RAW Speed Test";
+      exec = bmr-speed-test-wrapper;
+      icon = "${davinci}/graphics/graphics/blackmagicraw-speedtest_256x256_apps.png";
       categories = [
         "AudioVideo"
         "AudioVideoEditing"
