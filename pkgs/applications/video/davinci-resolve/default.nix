@@ -39,7 +39,7 @@ let
       version = "19.1";
 
       nativeBuildInputs = [
-        (appimage-run.override { buildFHSEnv = buildFHSEnvChroot; } )
+        (appimage-run.override { buildFHSEnv = buildFHSEnvChroot; })
         addDriverRunpath
         copyDesktopItems
         unzip
@@ -51,93 +51,101 @@ let
         xorg.libXxf86vm
       ];
 
-      src = runCommandLocal "${pname}-src.zip"
-        rec {
-          outputHashMode = "recursive";
-          outputHashAlgo = "sha256";
-          outputHash =
-            if studioVariant
-            then "sha256-uEUZt0TQ4XrAag6NoCPUtYSnkwpwh3BNlol1z/EmP9E="
-            else "sha256-3VVyfXT/mZFuf2GGkNS47ErSdAGpdUUwwwKY19zBBZo=";
+      src =
+        runCommandLocal "${pname}-src.zip"
+          rec {
+            outputHashMode = "recursive";
+            outputHashAlgo = "sha256";
+            outputHash =
+              if studioVariant then
+                "sha256-uEUZt0TQ4XrAag6NoCPUtYSnkwpwh3BNlol1z/EmP9E="
+              else
+                "sha256-3VVyfXT/mZFuf2GGkNS47ErSdAGpdUUwwwKY19zBBZo=";
 
-          impureEnvVars = lib.fetchers.proxyImpureEnvVars;
+            impureEnvVars = lib.fetchers.proxyImpureEnvVars;
 
-          nativeBuildInputs = [ curl jq ];
+            nativeBuildInputs = [
+              curl
+              jq
+            ];
 
-          # ENV VARS
-          SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+            # ENV VARS
+            SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
 
-          # Get linux.downloadId from HTTP response on https://www.blackmagicdesign.com/products/davinciresolve
-          REFERID = "263d62f31cbb49e0868005059abcb0c9";
-          DOWNLOADSURL = "https://www.blackmagicdesign.com/api/support/us/downloads.json";
-          SITEURL = "https://www.blackmagicdesign.com/api/register/us/download";
-          PRODUCT = "DaVinci Resolve${lib.optionalString studioVariant " Studio"}";
-          VERSION = version;
+            # Get linux.downloadId from HTTP response on https://www.blackmagicdesign.com/products/davinciresolve
+            REFERID = "263d62f31cbb49e0868005059abcb0c9";
+            DOWNLOADSURL = "https://www.blackmagicdesign.com/api/support/us/downloads.json";
+            SITEURL = "https://www.blackmagicdesign.com/api/register/us/download";
+            PRODUCT = "DaVinci Resolve${lib.optionalString studioVariant " Studio"}";
+            VERSION = version;
 
-          USERAGENT = builtins.concatStringsSep " " [
-            "User-Agent: Mozilla/5.0 (X11; Linux ${stdenv.hostPlatform.linuxArch})"
-            "AppleWebKit/537.36 (KHTML, like Gecko)"
-            "Chrome/77.0.3865.75"
-            "Safari/537.36"
-          ];
+            USERAGENT = builtins.concatStringsSep " " [
+              "User-Agent: Mozilla/5.0 (X11; Linux ${stdenv.hostPlatform.linuxArch})"
+              "AppleWebKit/537.36 (KHTML, like Gecko)"
+              "Chrome/77.0.3865.75"
+              "Safari/537.36"
+            ];
 
-          REQJSON = builtins.toJSON {
-            "firstname" = "NixOS";
-            "lastname" = "Linux";
-            "email" = "someone@nixos.org";
-            "phone" = "+31 71 452 5670";
-            "country" = "nl";
-            "street" = "-";
-            "state" = "Province of Utrecht";
-            "city" = "Utrecht";
-            "product" = PRODUCT;
-          };
+            REQJSON = builtins.toJSON {
+              "firstname" = "NixOS";
+              "lastname" = "Linux";
+              "email" = "someone@nixos.org";
+              "phone" = "+31 71 452 5670";
+              "country" = "nl";
+              "street" = "-";
+              "state" = "Province of Utrecht";
+              "city" = "Utrecht";
+              "product" = PRODUCT;
+            };
 
-        } ''
-        DOWNLOADID=$(
-          curl --silent --compressed "$DOWNLOADSURL" \
-            | jq --raw-output '.downloads[] | .urls.Linux?[]? | select(.downloadTitle | test("^'"$PRODUCT $VERSION"'( Update)?$")) | .downloadId'
-        )
-        echo "downloadid is $DOWNLOADID"
-        test -n "$DOWNLOADID"
-        RESOLVEURL=$(curl \
-          --silent \
-          --header 'Host: www.blackmagicdesign.com' \
-          --header 'Accept: application/json, text/plain, */*' \
-          --header 'Origin: https://www.blackmagicdesign.com' \
-          --header "$USERAGENT" \
-          --header 'Content-Type: application/json;charset=UTF-8' \
-          --header "Referer: https://www.blackmagicdesign.com/support/download/$REFERID/Linux" \
-          --header 'Accept-Encoding: gzip, deflate, br' \
-          --header 'Accept-Language: en-US,en;q=0.9' \
-          --header 'Authority: www.blackmagicdesign.com' \
-          --header 'Cookie: _ga=GA1.2.1849503966.1518103294; _gid=GA1.2.953840595.1518103294' \
-          --data-ascii "$REQJSON" \
-          --compressed \
-          "$SITEURL/$DOWNLOADID")
-        echo "resolveurl is $RESOLVEURL"
+          }
+          ''
+            DOWNLOADID=$(
+              curl --silent --compressed "$DOWNLOADSURL" \
+                | jq --raw-output '.downloads[] | .urls.Linux?[]? | select(.downloadTitle | test("^'"$PRODUCT $VERSION"'( Update)?$")) | .downloadId'
+            )
+            echo "downloadid is $DOWNLOADID"
+            test -n "$DOWNLOADID"
+            RESOLVEURL=$(curl \
+              --silent \
+              --header 'Host: www.blackmagicdesign.com' \
+              --header 'Accept: application/json, text/plain, */*' \
+              --header 'Origin: https://www.blackmagicdesign.com' \
+              --header "$USERAGENT" \
+              --header 'Content-Type: application/json;charset=UTF-8' \
+              --header "Referer: https://www.blackmagicdesign.com/support/download/$REFERID/Linux" \
+              --header 'Accept-Encoding: gzip, deflate, br' \
+              --header 'Accept-Language: en-US,en;q=0.9' \
+              --header 'Authority: www.blackmagicdesign.com' \
+              --header 'Cookie: _ga=GA1.2.1849503966.1518103294; _gid=GA1.2.953840595.1518103294' \
+              --data-ascii "$REQJSON" \
+              --compressed \
+              "$SITEURL/$DOWNLOADID")
+            echo "resolveurl is $RESOLVEURL"
 
-        curl \
-          --retry 3 --retry-delay 3 \
-          --header "Upgrade-Insecure-Requests: 1" \
-          --header "$USERAGENT" \
-          --header "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8" \
-          --header "Accept-Language: en-US,en;q=0.9" \
-          --compressed \
-          "$RESOLVEURL" \
-          > $out
-      '';
+            curl \
+              --retry 3 --retry-delay 3 \
+              --header "Upgrade-Insecure-Requests: 1" \
+              --header "$USERAGENT" \
+              --header "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8" \
+              --header "Accept-Language: en-US,en;q=0.9" \
+              --compressed \
+              "$RESOLVEURL" \
+              > $out
+          '';
 
       # The unpack phase won't generate a directory
       sourceRoot = ".";
 
-      installPhase = let
-        appimageName = "DaVinci_Resolve_${lib.optionalString studioVariant "Studio_"}${version}_Linux.run";
-      in ''
-        runHook preInstall
+      installPhase =
+        let
+          appimageName = "DaVinci_Resolve_${lib.optionalString studioVariant "Studio_"}${version}_Linux.run";
+        in
+        ''
+          runHook preInstall
 
-        export HOME=$PWD/home
-        mkdir -p $HOME
+          export HOME=$PWD/home
+          mkdir -p $HOME
 
         mkdir -p $out
         test -e ${lib.escapeShellArg appimageName}
@@ -246,9 +254,7 @@ let
     "--bind \"$HOME\"/.local/share/DaVinciResolve/license ${davinci}/.license"
   ];
 
-  runScript = "${bash}/bin/bash ${
-    writeText "davinci-wrapper"
-    ''
+  runScript = "${bash}/bin/bash ${writeText "davinci-wrapper" ''
     export QT_XKB_CONFIG_ROOT="${xkeyboard_config}/share/X11/xkb"
     export QT_PLUGIN_PATH="${davinci}/libs/plugins:$QT_PLUGIN_PATH"
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib:/usr/lib32:${davinci}/libs
@@ -357,7 +363,11 @@ symlinkJoin {
     inherit davinci;
     updateScript = lib.getExe (writeShellApplication {
       name = "update-davinci-resolve";
-      runtimeInputs = [ curl jq common-updater-scripts ];
+      runtimeInputs = [
+        curl
+        jq
+        common-updater-scripts
+      ];
       text = ''
         set -o errexit
         drv=pkgs/applications/video/davinci-resolve/default.nix
@@ -381,7 +391,11 @@ symlinkJoin {
     description = "Professional video editing, color, effects and audio post-processing";
     homepage = "https://www.blackmagicdesign.com/products/davinciresolve";
     license = licenses.unfree;
-    maintainers = with maintainers; [ amarshall jshcmpbll orivej ];
+    maintainers = with maintainers; [
+      amarshall
+      jshcmpbll
+      orivej
+    ];
     platforms = [ "x86_64-linux" ];
     sourceProvenance = with sourceTypes; [ binaryNativeCode ];
     mainProgram = "davinci-resolve${lib.optionalString studioVariant "-studio"}";

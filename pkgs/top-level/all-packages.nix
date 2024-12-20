@@ -4835,6 +4835,8 @@ with pkgs;
 
   pakcs = callPackage ../development/compilers/pakcs { };
 
+  pandoc_3_5 = callPackage ../by-name/pa/pandoc/package.nix { selectPandocCLI = (p: p.pandoc-cli_3_5); };
+
   paperwork = callPackage ../applications/office/paperwork/paperwork-gtk.nix { };
 
   parallel = callPackage ../tools/misc/parallel { };
@@ -11776,6 +11778,19 @@ with pkgs;
 
   jitsi-videobridge = callPackage ../servers/jitsi-videobridge { };
 
+  kanidm_1_3 = callPackage ../by-name/ka/kanidm/1_3.nix { };
+  kanidm_1_4 = callPackage ../by-name/ka/kanidm/1_4.nix { };
+
+  kanidmWithSecretProvisioning = kanidmWithSecretProvisioning_1_4;
+
+  kanidmWithSecretProvisioning_1_3 = callPackage ../by-name/ka/kanidm/1_3.nix {
+    enableSecretProvisioning = true;
+  };
+
+  kanidmWithSecretProvisioning_1_4 = callPackage ../by-name/ka/kanidm/1_4.nix {
+    enableSecretProvisioning = true;
+  };
+
   knot-resolver = callPackage ../servers/dns/knot-resolver {
     systemd = systemdMinimal; # in closure already anyway
   };
@@ -13633,7 +13648,6 @@ with pkgs;
   };
   datadog-process-agent = callPackage ../tools/networking/dd-agent/datadog-process-agent.nix { };
   datadog-integrations-core = extras: callPackage ../tools/networking/dd-agent/integrations-core.nix {
-    python = python3;
     extraIntegrations = extras;
   };
 
@@ -15284,8 +15298,6 @@ with pkgs;
 
   opentoonz = libsForQt5.callPackage ../applications/graphics/opentoonz { };
 
-  opentabletdriver = callPackage ../tools/X11/opentabletdriver { };
-
   opentx = libsForQt5.callPackage ../applications/misc/opentx { };
 
   organicmaps = qt6Packages.callPackage ../applications/misc/organicmaps { };
@@ -16578,10 +16590,6 @@ with pkgs;
     protobuf = protobuf_21;
     withGui = false;
   };
-
-  btcpayserver = callPackage ../applications/blockchains/btcpayserver { };
-
-  btcpayserver-altcoins = callPackage ../applications/blockchains/btcpayserver { altcoinSupport = true; };
 
   cryptop = python3.pkgs.callPackage ../applications/blockchains/cryptop { };
 
