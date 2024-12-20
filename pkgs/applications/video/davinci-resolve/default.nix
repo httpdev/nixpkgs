@@ -14,6 +14,8 @@
   buildFHSEnvChroot,
   bash,
   writeText,
+  writeShellScriptBin,
+  symlinkJoin,
   ocl-icd,
   xkeyboard_config,
   glib,
@@ -147,16 +149,16 @@ let
           export HOME=$PWD/home
           mkdir -p $HOME
 
-        mkdir -p $out
-        test -e ${lib.escapeShellArg appimageName}
-        appimage-run ${lib.escapeShellArg appimageName} -i -y -n -C $out
-        mkdir -p $out/lib
-        tar xvf $out/share/panels/dvpanel-framework-linux-x86_64.tgz -C $out/lib        
+          mkdir -p $out
+          test -e ${lib.escapeShellArg appimageName}
+          appimage-run ${lib.escapeShellArg appimageName} -i -y -n -C $out
+          mkdir -p $out/lib
+          tar xvf $out/share/panels/dvpanel-framework-linux-x86_64.tgz -C $out/lib        
 
-        mkdir -p $out/{configs,DolbyVision,easyDCP,Fairlight,GPUCache,logs,Media,"Resolve Disk Database",.crashreport,.license,.LUT}
+          mkdir -p $out/{configs,DolbyVision,easyDCP,Fairlight,GPUCache,logs,Media,"Resolve Disk Database",.crashreport,.license,.LUT}
 
-        runHook postInstall
-      '';
+          runHook postInstall
+        '';
 
       dontStrip = true;
 
