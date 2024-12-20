@@ -1,36 +1,34 @@
-{ stdenv
-, lib
-, cacert
-, curl
-, runCommandLocal
-, unzip
-#, gnutar
-, appimage-run
-, addDriverRunpath
-, dbus
-, libGLU
-, xorg
-, buildFHSEnv
-, buildFHSEnvChroot
-, bash
-, writeText
-, writeShellScriptBin
-, symlinkJoin
-, ocl-icd
-, xkeyboard_config
-, glib
-, libarchive
-, libxcrypt
-, python3
-, aprutil
-, makeDesktopItem
-, copyDesktopItems
-, jq
+{
+  stdenv,
+  lib,
+  cacert,
+  curl,
+  runCommandLocal,
+  unzip,
+  appimage-run,
+  addDriverRunpath,
+  dbus,
+  libGLU,
+  xorg,
+  buildFHSEnv,
+  buildFHSEnvChroot,
+  bash,
+  writeText,
+  ocl-icd,
+  xkeyboard_config,
+  glib,
+  libarchive,
+  libxcrypt,
+  python3,
+  aprutil,
+  makeDesktopItem,
+  copyDesktopItems,
+  jq,
 
-, studioVariant ? false
+  studioVariant ? false,
 
-, common-updater-scripts
-, writeShellApplication
+  common-updater-scripts,
+  writeShellApplication,
 }:
 
 let
@@ -45,7 +43,6 @@ let
         addDriverRunpath
         copyDesktopItems
         unzip
-#        gnutar
       ];
 
       # Pretty sure, there are missing dependencies ...
@@ -178,67 +175,68 @@ let
   pname = "${davinci.pname}-fhs";
   inherit (davinci) version;
 
-  targetPkgs = pkgs: with pkgs; [
-    alsa-lib
-    aprutil
-    bzip2
-    davinci
-    dbus
-    expat
-    fontconfig
-    freetype
-    glib
-    krb5  # for DaVinci Control Panels Setup
-    libGL
-    libGLU
-    libarchive
-    libcap
-    libdrm
-    libpng12
-    librsvg
-    libtool
-    libusb1
-    libuuid
-    libxcrypt # provides libcrypt.so.1
-    libxkbcommon
-    nspr
-    nss
-    ocl-icd
-    opencl-headers
-    python3
-    python3.pkgs.numpy
-    udev
-    xcb-util-cursor
-    xdg-utils # xdg-open needed to open URLs
-    xorg.libICE
-    xorg.libSM
-    xorg.libX11
-    xorg.libXcomposite
-    xorg.libXcursor
-    xorg.libXdamage
-    xorg.libXext
-    xorg.libXfixes
-    xorg.libXi
-    xorg.libXinerama
-    xorg.libXrandr
-    xorg.libXrender
-    xorg.libXt
-    xorg.libXtst
-    xorg.libXxf86vm
-    xorg.libxcb
-    xorg.xcbutil
-    xorg.xcbutilimage
-    xorg.xcbutilkeysyms
-    xorg.xcbutilrenderutil
-    xorg.xcbutilwm
-    xorg.xkeyboardconfig
-    xorg.libxkbfile
-    zlib
+  targetPkgs =
+    pkgs: with pkgs; [
+      alsa-lib
+      aprutil
+      bzip2
+      davinci
+      dbus
+      expat
+      fontconfig
+      freetype
+      glib
+      krb5  # for DaVinci Control Panels Setup
+      libGL
+      libGLU
+      libarchive
+      libcap
+      libdrm
+      libpng12
+      librsvg
+      libtool
+      libusb1
+      libuuid
+      libxcrypt # provides libcrypt.so.1
+      libxkbcommon
+      nspr
+      nss
+      ocl-icd
+      opencl-headers
+      python3
+      python3.pkgs.numpy
+      udev
+      xcb-util-cursor
+      xdg-utils # xdg-open needed to open URLs
+      xorg.libICE
+      xorg.libSM
+      xorg.libX11
+      xorg.libXcomposite
+      xorg.libXcursor
+      xorg.libXdamage
+      xorg.libXext
+      xorg.libXfixes
+      xorg.libXi
+      xorg.libXinerama
+      xorg.libXrandr
+      xorg.libXrender
+      xorg.libXt
+      xorg.libXtst
+      xorg.libXxf86vm
+      xorg.libxcb
+      xorg.xcbutil
+      xorg.xcbutilimage
+      xorg.xcbutilkeysyms
+      xorg.xcbutilrenderutil
+      xorg.xcbutilwm
+      xorg.xkeyboardconfig
+      xorg.libxkbfile
+      zlib
 
-    # extra for getlogs
-    pciutils
-    unixtools.top
-  ];
+      # extra for getlogs
+      #pciutils
+      #unixtools.top
+    ];
 
   extraPreBwrapCmds = lib.optionalString studioVariant ''
     mkdir -p ~/.local/share/DaVinciResolve/license || exit 1
