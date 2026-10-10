@@ -19,7 +19,7 @@
   xkeyboard_config,
   glib,
   libarchive,
-  libxcrypt,
+  libxcrypt-legacy,
   python3,
   aprutil,
   makeDesktopItem,
@@ -46,7 +46,7 @@ let
   davinci = (
     stdenv.mkDerivation rec {
       pname = "davinci-resolve${lib.optionalString studioVariant "-studio"}";
-      version = "21.0.4";
+      version = "21.1.1";
 
       nativeBuildInputs = [
         appimageTools.appimage-exec
@@ -68,9 +68,9 @@ let
             outputHashAlgo = "sha256";
             outputHash =
               if studioVariant then
-                "sha256-FwaSnK3DAIRGCz6kiWxE4o0Cd0en2qoyuWCDHat1xHQ="
+                "sha256-rURkNmPzRjeD2aadEpZE9h/uQfsmVm43sJTJVODqP30="
               else
-                "sha256-oX/abUHhnl1AW3xb53x8l7WIdSKc9e2Ocp0qtGAOv/A=";
+                "sha256-hU27MRgjuBv201uR4tdI1P4ay8dCKyhNBtxwZ9CajJM=";
 
             impureEnvVars = lib.fetchers.proxyImpureEnvVars;
 
@@ -161,7 +161,7 @@ let
           test -e ${lib.escapeShellArg appimageName}
           appimage-exec.sh -x $out ${lib.escapeShellArg appimageName}
 
-          mkdir -p $out/{"Apple Immersive/Calibration",configs,DolbyVision,easyDCP,Extras,Fairlight,GPUCache,lib,logs,Media,"Resolve Disk Database",.crashreport,.license,.LUT}
+          mkdir -p $out/{"Apple Immersive/Calibration",configs,DolbyVision,easyDCP,Extras,Fairlight,GPUCache,Immersive/Canon/STMap,lib,logs,Media,"Resolve Disk Database",.crashreport,.license,.LUT}
 
           # For hardware panel support, Resolve requires the panel libraries to be unpacked to the
           # library search path within the FHS environment.
@@ -185,7 +185,6 @@ let
             addDriverRunpath "$program"
           fi
         done
-        ln -s $out/libs/libcrypto.so.1.1 $out/libs/libcrypt.so.1
       '';
     }
   );
@@ -216,7 +215,7 @@ let
         libtool
         libusb1
         libuuid
-        libxcrypt # provides libcrypt.so.1
+        libxcrypt-legacy # provides libcrypt.so.1
         libxkbcommon
         nspr
         nss
