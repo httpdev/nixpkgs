@@ -339,6 +339,11 @@ let
       export RESOLVE_SCRIPT_LIB="${davinci}/libs/Fusion/fusionscript.so"
       export PYTHONPATH="$PYTHONPATH:${davinci}/Developer/Scripting/Modules"
 
+      # without this, Resolve stops processing when it stops receiving messages
+      # because the screen is locked or it is in the background
+      export __GL_SYNC_TO_VBLANK=0
+      export vblank_mode=0
+
       exec ${lib.strings.concatMapStringsSep " " lib.escapeShellArg ([ wrapper ] ++ args)} "$@"
     '';
 
